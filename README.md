@@ -59,7 +59,7 @@ The table below shows which of the components of the GATK best practices have a 
 This User Guide provides details on the setup of the Falcon Genome pipeline, command-line usage and a step-by-step example to run the variant calling pipeline.
 
 ## Quick Start on Public Clouds
-- [AWS](AWS/README.md)
+- [AWS](aws/README.md)
 - [Huawei Cloud](hwcloud/README.md)
 - [Alibaba Cloud](aliyun/README.md)
 
