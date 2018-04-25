@@ -107,7 +107,7 @@ fcs-genome ug -r ref.fasta -i recal.bam -o final.vcf
 ```
 For additional options, type in the command-line `fcs-genome [method]`.
 
-In addition, the option `--extra-options` can be used to apply options in the original GATK that is not included in `fcs-genome`. For example:  
+In addition, the option `--extra-options` can be used to apply options in the original GATK that is not included in `fcs-genome`. For example:  
 ```
 fcs-genome printreads -r ref.fasta -b recalibration_report.grp -i indel.bam \
   -o recal.bam --extra-options "-n 100000"
@@ -126,7 +126,7 @@ Please check the GATK documentation for all extra options available. The tables 
 | -O | --extra-options | String(\*) | extra options in GATK for the command. Use " " to enclose the GATK command. Example "--TheOption arg" |
 
 ### fcs-genome align
-Perform alignment using the Burrows-Wheeler Algorithm. It is the equivalent of bwa-mem. By default, mark duplicates are performed. If `--align-only` is set, no mark duplicate will be performed.
+Perform alignment using the Burrows-Wheeler Algorithm. It is the equivalent of bwa-mem. By default, mark duplicates are performed. If `--align-only` is set, no mark duplicate will be performed.
 
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
@@ -159,7 +159,7 @@ Take a BAM file and perform indel re-alignment.
 | -K | --known | String(\*) | known indels for realignment(VCF format). If more VCF are considered, add -K for each file |
 
 ### fcs-genome bqsr
-Take a BAM file and perform Base Quality Score Recalibration. It can be performed within a region defined in the `--knownSites` option. If --bqsr is set, a report is generated.
+Take a BAM file and perform Base Quality Score Recalibration. It can be performed within a region defined in the `--knownSites` option. If --bqsr is set, a report is generated.
 
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
@@ -180,11 +180,11 @@ Take a BAM file and generate a Base Quality Score Recalibration.
 | -K | --knownSites | String(\*) | known indels for realignment (VCF format). If more VCF are considered, add -K for each file |
 
 ### fcs-genome printreads
-Take a BAM file and filter reads according to some settings defined in `--extra-options`.
+Take a BAM file and filter reads according to some settings defined in `--extra-options`.
 
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
-| -r | --ref |Â String(\*) | reference genome path |
+| -r | --ref | String(\*) | reference genome path |
 | -b | --bqsr | String(\*) | input BQSR file |
 | -i | --input | String(\*) | input BAM file or directory |
 | -o | --output | String(\*) | output BAM files |
@@ -201,7 +201,7 @@ Take a BAM file and generate a gVCF file by default.  If --produce-vcf is set, a
 | -s | --skip-concat | | (deprecated) produce a set of gVCF/VCF files instead of one |
 
 ### fcs-genome ug
-This method is the equivalent of UnifiedGenotype in GATK. It takes a BAM file as an input and generates a VCF file.  It accepts options from GATK through --extra-options
+This method is the equivalent of UnifiedGenotype in GATK. It takes a BAM file as an input and generates a VCF file.  It accepts options from GATK through `--extra-option`
 
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
@@ -310,7 +310,7 @@ The command also works with a single BAM file.  It takes around 1177 seconds to 
 ### Generating Genomic VCF (gVCF) file from a BAM file with Haplotype Caller
 fcs-genome htc performs germline variant calling using the input BAM file with default output format as gVCF. if --produce-vcf is set, a VCF file is produced.
 ```
-SAMPLE_ID="small"
+SAMPLE_ID="small"
 REF="/local/ref/human_g1k_v37.fasta
 BAM_INPUT=${SAMPLE_ID}_recalibrated.bam
 OutputVCF=${SAMPLE_ID}_final.gvcf
@@ -323,7 +323,7 @@ fcs-genome htc \
 For this example, it takes 415 seconds to complete. The htc option accepts multiple BAM files as input.
 
 ## Tuning Configurations
-Configurations can be tuned to define the settings for each command-line option during the run. The default configuration settings are stored in /usr/local/fcs-genome.conf. If a file with the same name `fcs-genome.conf` is presented in the present directory, its values will be used to overwrite the default values. In addition, environmental variables can be used to overwrite both default configurations and the configurations in `fcs-genome.conf` in the present directory.
+Configurations can be tuned to define the settings for each command-line option during the run. The default configuration settings are stored in /usr/local/fcs-genome.conf. If a file with the same name `fcs-genome.conf` is presented in the present directory, its values will be used to overwrite the default values. In addition, environmental variables can be used to overwrite both default configurations and the configurations in `fcs-genome.conf` in the present directory.
 An example of the configuration settings for the germline variant calling pipeline is as below:
 ```
 temp_dir = /local/temp
@@ -332,8 +332,8 @@ gatk.nprocs = 16
 gatk.nct = 1
 gatk.memory = 8
 ```
-The key `temp_dir` specifies the system folder to store temporary files. Some steps in `fcs-genome`, including `align`, will write large files to a temporary folder. Please ensure this configuration is set to a location with enough space. The recommended free space is 3~5x the input data size.
-The GATK steps, such as BaseRecalibratior, PrintReads and HaplotypeCaller, are run in parallel. By default, 32 total processes will be used for each GATK step. To change the default number, the key `gatk.ncontigs` can be set. The configuration key `gatk.nprocs` is used to specify the number of concurrent processes in each step. `gatk.memory` specifies the memory consumed by each process. Ideally, `gatk.nprocs` should be less than or equal to the total number of CPU cores, and the product of gatk.nprocs and gatk.memory would be less than or equal to the total memory. The number of concurrent process number and memory per process can be changed to individual steps with the following format: [step-name].nprocs, [step-name].memory
+The key `temp_dir` specifies the system folder to store temporary files. Some steps in `fcs-genome`, including `align`, will write large files to a temporary folder. Please ensure this configuration is set to a location with enough space. The recommended free space is 3~5x the input data size.
+The GATK steps, such as BaseRecalibratior, PrintReads and HaplotypeCaller, are run in parallel. By default, 32 total processes will be used for each GATK step. To change the default number, the key `gatk.ncontigs` be set. The configuration key `gatk.nprocs` is used to specify the number of concurrent processes in each step. `gatk.memory` the memory consumed by each process. Ideally, `gatk.nprocs` be less than or equal to the total number of CPU cores, and the product of gatk.nprocs and gatk.memory would be less than or equal to the total memory. The number of concurrent process number and memory per process can be changed to individual steps with the following format: [step-name].nprocs, [step-name].memory
 
 ### Reference Table for Configurations
 | Configuration key | Argument Type | Default Value | Description |
