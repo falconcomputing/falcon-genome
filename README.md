@@ -1,5 +1,35 @@
 # Falcon Accelerated Genomics Pipeline User Guide
 
+<!-- TOC depthFrom:2 depthTo:3 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Introduction](#introduction)
+- [Quick Start on Public Clouds](#quick-start-on-public-clouds)
+- [FAQ](#faq)
+- [System Requirements and Installation](#system-requirements-and-installation)
+	- [Software Prerequisites](#software-prerequisites)
+	- [System Setup](#system-setup)
+	- [Preparation](#preparation)
+- [Synopsis](#synopsis)
+	- [Common Options Among Methods](#common-options-among-methods)
+	- [fcs-genome align](#fcs-genome-align)
+	- [fcs-genome markdup](#fcs-genome-markdup)
+	- [fcs-genome indel](#fcs-genome-indel)
+	- [fcs-genome bqsr](#fcs-genome-bqsr)
+	- [fcs-genome baserecal](#fcs-genome-baserecal)
+	- [fcs-genome printreads](#fcs-genome-printreads)
+	- [fcs-genome htc](#fcs-genome-htc)
+	- [fcs-genome ug](#fcs-genome-ug)
+	- [fcs-genome joint](#fcs-genome-joint)
+	- [fcs-genome gatk](#fcs-genome-gatk)
+- [Quick Start](#quick-start)
+	- [Generating a Marked Duplicates BAM file from Paired-End FASTQ files](#generating-a-marked-duplicates-bam-file-from-paired-end-fastq-files)
+	- [Performing Indel Re-alignment from a Marked Duplicates BAM file](#performing-indel-re-alignment-from-a-marked-duplicates-bam-file)
+	- [Generating Base Quality Recalibration Report (BQSR) from a BAM file with known sites](#generating-base-quality-recalibration-report-bqsr-from-a-bam-file-with-known-sites)
+	- [Generating Genomic VCF (gVCF) file from a BAM file with Haplotype Caller](#generating-genomic-vcf-gvcf-file-from-a-bam-file-with-haplotype-caller)
+- [Tuning Configurations](#tuning-configurations)
+	- [Reference Table for Configurations](#reference-table-for-configurations)
+
+<!-- /TOC -->
 
 ## Introduction
 The Falcon Accelerated Genomics Pipelines (FAGP) comprising the `fcs-genome` software allows for variant calling for both germline and somatic mutations based on the GATK Best Practices pipelines. The performance of the pipelines is significantly improved with Falcon's acceleration technologies.
@@ -32,6 +62,9 @@ This User Guide provides details on the setup of the Falcon Genome pipeline, com
 - [AWS](AWS/README.md)
 - [Huawei Cloud](hwcloud/README.md)
 - [Alibaba Cloud](aliyun/README.md)
+
+## FAQ
+[FAQ for Falcon Accelerated Genomics Pipelines.](FAQ.md)
 
 ## System Requirements and Installation
 ### Software Prerequisites
@@ -343,6 +376,3 @@ The GATK steps, such as BaseRecalibratior, PrintReads and HaplotypeCaller, are r
 | gatk.combine.nprocs | int | 16 | default process num in GATK CombineGVCFs |
 | gatk.genotype.nprocs | int | 32 | default process num in GATK GenotypeGVCFs |
 | gatk.genotype.memory | int | 4 | default heap memory in GATK GenotypeGVCFs |
-
-## FAQ
-[FAQ for Falcon Accelerated Genomics Pipelines.](FAQ.md)
