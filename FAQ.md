@@ -6,8 +6,10 @@
 - [2. `fcs-genome align` fails, and `bwa-flow` log reports `[E::bwa_idx_load_from_disk]` error.](#2-fcs-genome-align-fails-and-bwa-flow-log-reports-ebwaidxloadfromdisk-error)
 - [3 `fcs-genome bqsr` fails with the missing fasta index file.](#3-fcs-genome-bqsr-fails-with-the-missing-fasta-index-file)
 - [4. Falcon accelerated GATK steps fails will `Killed` message.](#4-falcon-accelerated-gatk-steps-fails-will-killed-message)
+- [5. `fcs-genome bqsr`, `fcs-genome ir`, `fcs-genome baserecals` slow or stuck issue.](#5-fcs-genome-bqsr-fcs-genome-ir-fcs-genome-baserecals-slow-or-stuck-issue)
 
 <!-- /TOC -->
+
 ### 1. What are the accelerated steps available in the Falcon Accelerated Genomics Pipelines?
 #### Answer
 Please see the table below for a list of accelerated steps:
@@ -80,3 +82,20 @@ For example, if the machine has 32 core and 128Gb memory, we can modify the conf
 gatk.nprocs = 16
 gatk.memory = 4
 ```
+
+### 5. `fcs-genome bqsr`, `fcs-genome ir`, `fcs-genome baserecals` slow or stuck issue.
+Affected commands all have `--known-sites` argument enabled. GATK may sometimes reports error message similar to this:
+```
+WARN 20:46:58,630 RMDTrackBuilder - Index file dbsnp_138.hg19.vcf.idx is out of date (index older than input file), falling back to an in-memory index
+```
+#### Answer
+The reason is that GATK does not recognize valid index file for the VCF database, either because the index is missing or because it's older than the VCF file. This will result in GATK rebuilding the index in-memory, which causes the process to be very slow. The fix is to build the index before a run, or update the index file by `touch` if it's already built.
+To build an index if it's not present, simply use the original GATK to run a command:
+```
+fcs-genome gatk -T BaseRecalibrator \
+    -R hg19.fa \
+    -I any-input.bam \
+    -knownSites dbsnp_138.hg19.vcf \
+    -o output.rpt
+```
+The `*.idx` file will be automatically build in the same directory of `dbsnp_138.hg19.vcf`.
