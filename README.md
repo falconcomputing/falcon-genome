@@ -1,6 +1,6 @@
 # Falcon Accelerated Genomics Pipeline User Guide
-Release v2.0.0
-08/31/2018
+Release v2.1.0
+02/15/2019
 
 <!-- TOC depthFrom:2 depthTo:3 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -14,6 +14,7 @@ Release v2.0.0
 - [Synopsis](#synopsis)
 	- [Common Options](#common-options)
 	- [Common GATK Options](#common-gatk-options)
+	- [`fcs-genome germline` Options](#fcs-genome-germline-options)
 	- [`fcs-genome align` Options](#fcs-genome-align-options)
 	- [`fcs-genome bqsr` Options](#fcs-genome-bqsr-options)
 	- [`fcs-genome baserecal` Options](#fcs-genome-baserecal-options)
@@ -22,6 +23,7 @@ Release v2.0.0
 	- [`fcs-genome joint` Options](#fcs-genome-joint-options)
 	- [`fcs-genome mutect2` Options](#fcs-genome-mutect2-options)
 	- [`fcs-genome depth` Options](#fcs-genome-depth-options)
+	- [`fcs-genome vcf_filter` Options](#fcs-genome-vcf_filter-options)
 	- [`fcs-genome gatk` Options](#fcs-genome-gatk-options)
 	- [Additional Commands](#additional-commands)
 - [Examples](#examples)
@@ -99,6 +101,8 @@ To take full advantage of the FPGA acceleration provided by the Falcon Genome im
 This section provides all the methods available in the fcs-genome command with their respective options settings.
 
 ```
+fcs-genome germline -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o output.vcf --produce-vcf --produce-bam
+
 fcs-genome align -r ref.fasta -1 input_1.fastq -2 input_2.fastq -o output.bam [--align-only]
 fcs-genome align -r ref.fasta -F SampleSheet.csv -o output_dir [--align-only]
 
@@ -122,7 +126,7 @@ The following options are available for all `fcs-genome` commands.
 | -O | --extra-options | String(\*) | access to GATK tools extra options. Use " " to enclose the option name and argument(s). Example "--option argrement" |
 
 - The option `--force | -f` will force `fcs-genome` to overwrite output file if it already exists. By default, the tool will prompt user input if the specified output file(s) already exists.  
-- The option `--extra-options | -O` is used to apply additional options to the downstream tools (bwa, GATK) that are not included in `fcs-genome`.
+- The option `--extra-options | -O` is used to apply additional options to the downstream tools (bwa, GATK) that are not included in `fcs-genome`. All additional parameters in the GATK methods are available through that option. 
 For example:  
    ```
    fcs-genome htc
@@ -141,11 +145,29 @@ For GATK commands (e.g. `bqsr`, `htc`, `mutect2`), the following options are ava
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -L | --intervalList | String | a interval file (e.g. BED) that specifies targeted region of interest for the analysis |
-| -g | --gatk4 | | use GATK 4, if unset, GATK 3.8 will be used by default. |
+| --gatk4 | | use GATK 4, if unset, GATK 3.8 will be used by default. |
 
 - The option `--intervalList | -L` is used to specify targeted regions which analysis such as coverage and variant calling will be performed. This option should be used if sample was sequenced using a capture set since it optimizes computer resources and improves accuracy. For WGS samples, the interval list can be set to focus on a region of interest defined by the user. **NOTE**: Only a single interval list is supported. If the user needs multiple interval lists, the lists need to be merged manually.
 - The option `--gatk4 | -g` is used to select between GATK 4 and GATK 3.8 to run a command. The corresponding `fcs-genome` command remains the same. For example, `fcs-genome printreads` calls GATK **PrintReads** by default. But with `--gatk4` flag, it calls GATK **ApplyBQSR** which is the new command in 4.0.
     Alternatively, a configuration `use_gatk4 = true` can be set in the *fcs-genome.conf* configuration file to enable GATK 4 for all commands, regardless of the option `--gatk4` being set or not. For more information, please refer to the section [Configurations](#configurations).
+
+### `fcs-genome germline` Options
+The `germline` command performs alignment and variant calling using [minimap2]() and GATK (both v3.8 and v4.0.x).
+Given a set of pair-end FASTQ data as input, it produces a VCF or GVCF file with all variant sites. 
+
+| Option | Alternative | Argument | Description |
+| --- | --- | --- | --- |
+| -r | --ref | String | reference genome path |
+| -1 | --fastq1 | String | input pair-end Read 1 FASTQ file |
+| -2 | --fastq2 | String | input pair-end Read 2 FASTQ file |
+| -F | --sample_sheet | String | a sample sheet or path to a folder to FASTQ files |
+| -o | --output | String | output GVCF/VCF file |
+| -R | --rg | String | read group ID ('ID' in BAM header) |
+| -S | --sp | String | sample ID ('SM' in BAM header) |
+| -P | --pl | String | platform ID ('PL' in BAM header) |
+| -L | --lb | String | library ID ('LB' in BAM header) |
+| -v | --produce-vcf | | produce VCF files from HaplotypeCaller instead of gVCF |
+|    | --produce-bam | | produce an aligned BAM file (off by default) |
 
 ### `fcs-genome align` Options
 The `align` command performs alignment using [bwa mem](https://github.com/lh3/bwa), and duplication marking using [picard](https://broadinstitute.github.io/picard/).
@@ -157,20 +179,28 @@ Given a set of pair-end FASTQ data as input, it produces a BAM file with all rea
 | -1 | --fastq1 | String | input pair-end Read 1 FASTQ file |
 | -2 | --fastq2 | String | input pair-end Read 2 FASTQ file |
 | -F | --sample_sheet | String | a sample sheet or path to a folder to FASTQ files|
-| -o | --output | String | output BAM file, with  |
+| -o | --output | String | output BAM file with marked duplicates implemented as default |
 | -R | --rg | String | read group ID ('ID' in BAM header) |
 | -S | --sp | String | sample ID ('SM' in BAM header) |
 | -P | --pl | String | platform ID ('PL' in BAM header) |
 | -L | --lb | String | library ID ('LB' in BAM header) |
 | -l | --align-only | | skip mark duplicates |
 
-- The options `-R, -S, -P, -L` specifies the read group in the aligned sample's header. If left blank, the tool will automatically select the appropriate values for each fields.
+- The options `-R, -S, -P, -L` specifies the read group in the aligned sample's header. If left blank, the tool will automatically select the appropriate values for each fields. Default value : "sample".
 - If the option `--align-only` is set, no mark duplicate will be performed, and the output will be a single sorted BAM file.
 - In `fcs-genome align`, option `-O|--extra-options` only supports options in `bwa` (see [this link](http://bio-bwa.sourceforge.net/bwa.shtml#3) for more details), and the following options:
     - `-filter`: Filtering out records with INT bit seton the FLAG field, similar to the -F argument in samtools (default: 0)
 
+- If Sample Sheet is provided, it must be in csv format with a 6 columns header. Example:
+```
+#sample_id,fastq1,fastq2,rg,platform_id,library_id
+SampleA,SampleA_1.fastq.gz,SampleA_2.fastq.gz,SampleA,Illumina,ABC
+SampleB,SampleB_1.fastq.gz,SampleB_2.fastq.gz,SampleB,Illumina,ABC
+```
+The header describes the order of the input data as follows: Sample Name or ID, Read 1 FASTQ filename path, Read 2 filename path, Read Group Name, Platform which the sample was sequenced, and Library ID. Note that a sample may have more than 1 pair of FASTQ files. Using the Sample Sheet feature, the fcs-genome align will merge all the outputs generated from that sample, and save the BAM file in a folder with the sample name. By default, duplicate reads will be marked in the output BAM file unless the --align-only option is set. 
+
 #### Known Limitations
-1. `fcs-genome align` can only produce sorted BAM file, or mark duplicate BAM. For mark duplicate BAMs, duplications cannot be removed. To remove duplications, 3rd party tools such as `samtools` can be used.
+1. `fcs-genome align` can only produce sorted BAM file, or mark duplicate BAM. For mark duplicate BAMs, duplications cannot be removed at this moment. To remove duplications, 3rd party tools such as `samtools` can be used.
 2. Apart from the listed options, no other options in the original `samtools` and `picard` are supported.
 
 ### `fcs-genome bqsr` Options
@@ -182,7 +212,7 @@ The `bqsr` command is equivalent to calling `baserecal` and `printreads` consecu
 | --- | --- | --- | --- |
 | -r | --ref | String | reference genome path |
 | -b | --bqsr | String | output BQSR report path (if left blank, no file will be produced) |
-| -i | --input | String | input BAM file path |
+| -i | --input | String | input BAM file path (can be a single BAM file or Bam folder) |
 | -o | --output | String | output path; by default the output will be a folder with multiple BAM file parts; if `-m` is set, then a single BAM file will be produced |
 | -K | --knownSites | List | known variant databses for recalibration (VCF format). If more than one VCF files are considered, multiple `-K` options should be used, one for each file |
 | -m | --merge-bam | | merge output BAM parts into a single BAM file
@@ -193,7 +223,7 @@ The `baserecal` command generates a Base Quality Score Recalibration report give
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String | reference genome path |
-| -i | --input | String | input BAM file |
+| -i | --input | String | input BAM file or BAM folder |
 | -o | --output | String | output BQSR report |
 | -K | --knownSites | List | known variant databses for recalibration (VCF format). If more than one VCF files are considered, multiple `-K` options should be used, one for each file |
 
@@ -204,20 +234,20 @@ The `printreads` command recalibrates the base qualities for a given BAM file in
 | --- | --- | --- | --- |
 | -r | --ref | String | reference genome path |
 | -b | --bqsr | String | input BQSR file |
-| -i | --input | String | input BAM file or directory |
+| -i | --input | String | input BAM file or BAM folder |
 | -o | --output | String | output path; by default the output will be a folder with multiple BAM file parts; if `-m` is set, then a single BAM file will be produced |
 | -m | --merge-bam | | merge output BAM parts into a single BAM file
 
 ### `fcs-genome htc` Options
-The `htc` command calls SNP and INDEL variants using the *HaplotypeCaller* command in GATK 3.x and 4.x. It takes a BAM file as input and generates a gVCF file by default.  If `--produce-vcf` is set, a VCF file is generated instead of gVCF.
+The `htc` command calls SNP and INDEL variants using the *HaplotypeCaller* command in GATK 3.x and 4.x. It takes a BAM file as input and generates a gVCF file by default.  
+If `--produce-vcf` is set, a VCF file is generated instead of gVCF.
 
 | Option | Alternative | Argument | Description |
 | --- | --- | --- | --- |
 | -r | --ref | String | reference genome path |
-| -i | --input | String | input BAM file or directory |
-| -o | --output | String | output gVCF/VCF file (if --skip-concat is set the output will be a directory of gVCF files) |
+| -i | --input | String | input BAM file or BAM folder |
+| -o | --output | String | output gVCF/VCF file |
 | -v | --produce-vcf | | produce VCF files from HaplotypeCaller instead of gVCF |
-| -s | --skip-concat | | (deprecated) produce a set of GVCF/VCF files instead of one |
 
 ### `fcs-genome joint` Options
 The `joint` command performs a joint variant calling from a set of compressed gVCF files located in a folder spedified with `--input-dir`. Each gVCF file must have its own index posted in the input folder. This command is often used together with `htc` for cohort analysis.
@@ -228,7 +258,6 @@ The `joint` command performs a joint variant calling from a set of compressed gV
 | -i | --input-dir | String | input dir containing compressed gVCF files |
 | -o | --output | String | output compressed gVCF files |
 | -c | --combine-only | | combine GVCFs only and skip genotyping |
-| -g | --skip-combine | | (deprecated) perform genotype gVCFs only and skip combine gVCF |
 
 ### `fcs-genome mutect2` Options
 The `mutect2` command calls somatic variats using the *Mutect2* in GATK 3.x and 4.x. The output VCF file includes both somatic single nucleotide (SNVs) as well as insertion and deletion variants. In addition to taking tumor BAM files as input, the tool also requires the inclusion of a matched normal. Mutect2 uses the normals as prefilters for the allelic sites.
@@ -265,7 +294,11 @@ In GATK 4.x, two more options (`--normal_name` and `--tumor_name`) are required 
 
 Additional documentations for GATK 4.x usage can be found in this [link](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_hellbender_tools_walkers_mutect_Mutect2.php).
 
-Panels of Normals (PON) is a VCF file generated from a collection of VCF files of normal samples. By definition, Normal samples are obtained from healthy tissues and their DNA are assumed not to have any somatic variants. Using a PON VCF file in the analysis helps to capture artifacts that appear recurrently in the sequencer and threfore improve variant calling analysis.  Another VCF file set by `--germline` that contains a common population variants with allele-specific frequencies is also used in variant filtering. Mutect2 uses these two VCF files to filter sites and the germline resource and matched normal to filter alleles.
+Panels of Normals (PON) is a VCF file generated from the merge of a collection of VCF files of normal samples. By definition, Normal samples are obtained from healthy tissues and their DNA are assumed not to have any somatic variants. Using a PON VCF file in the analysis helps to capture artifacts that appear recurrently in the sequencer and threfore improve variant calling analysis.  Another VCF file set by `--germline` that contains a common population variants with allele-specific frequencies is also used in variant filtering. Mutect2 uses these two VCF files to filter sites and the germline resource and matched normal to filter alleles.
+
+For futher details about PON, please go to this [link](https://gatkforums.broadinstitute.org/gatk/discussion/11053/panel-of-normals-pon).
+
+Usually, pairs of normal-tumor samples are sequenced using captures. User should use -L option to provide BED file with the coordinates of the genomic regions defined by capture. 
 
 ### `fcs-genome depth` Options
 The `depth` command calculates the depth of coverage for a given BAM input files. It is equivalent to GATK 3.x *DepthOfCoverage* command. The output will be a set of reports depending on the options selected.
@@ -278,9 +311,24 @@ The `depth` command calculates the depth of coverage for a given BAM input files
 | -g | --geneList | String | list of genes over which the coverage is calculated |
 | -b | --omitBaseOutput |    | omit output coverage depth at each base (default: false) |
 | -v | --omitIntervals |     | omit output coverage per-interval statistics (default false) |
-| -s | --omitSampleSummary | | omit output summary files for each sample (default false |
+| -s | --omitSampleSummary | | omit output summary files for each sample (default false) |
 
 **NOTE**: DepthOfCoverage is not available in GATK4. 
+
+### `fcs-genome vcf_filter` Options
+The `vcf_filter` emulates the *VariantFiltration* in GATK. It takes a VCF file as input and labels variants that meet the criteria set up by the user.
+
+| Option | Alternative | Argument | Description |
+| --- | --- | --- | --- |
+| -r | --ref | String | reference genome path |
+| -i | --input | String | input VCF filename |
+| -o | --output | String | output filtered VCF file |
+| -L | --intervalList | String | interval list file |
+|    | --filteringExpression | String | parameters used to filter variants |
+|    | --filter_name | String | Filter name for the log file |
+| -g | --gatk4 | |  use gatk4 to perform analysis |
+
+For additional details about how to set up the filtering expression, please refer to the the [GATK documentation]( https://software.broadinstitute.org/gatk/documentation/tooldocs/4.beta.3/org_broadinstitute_hellbender_tools_walkers_filters_VariantFiltration.php) 
 
 ### `fcs-genome gatk` Options
 The `gatk` emulates the original GATK 3.x commands and as such, there is no Falcon provided acceleration. Please refer to the [GATK documentation](https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/) for additional details.

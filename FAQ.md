@@ -7,6 +7,8 @@
 - [3 `fcs-genome bqsr` fails with the missing fasta index file.](#3-fcs-genome-bqsr-fails-with-the-missing-fasta-index-file)
 - [4. Falcon accelerated GATK steps fails will `Killed` message.](#4-falcon-accelerated-gatk-steps-fails-will-killed-message)
 - [5. `fcs-genome bqsr`, `fcs-genome ir`, `fcs-genome baserecals` slow or stuck issue.](#5-fcs-genome-bqsr-fcs-genome-ir-fcs-genome-baserecals-slow-or-stuck-issue)
+- [6. `fcs-genome mutect2`, contiguous chromosome issue.](#5-fcs-genome-mutect2-contiguous-chromosome-issue)
+
 
 <!-- /TOC -->
 
@@ -99,3 +101,17 @@ fcs-genome gatk -T BaseRecalibrator \
     -o output.rpt
 ```
 The `*.idx` file will be automatically build in the same directory of `dbsnp_138.hg19.vcf`.
+
+### 5. `fcs-genome mutect2` contiguous chromosome issue.
+Affected command displays ERROR Message: 
+```
+The chromosome block chr19 is not contiguous, consider running with -a
+```
+#### Answer
+This ERROR message indicates that the data contains unsorted inputs or entries that were not generated sequentially. Current pipeline assumes that parts BAM files were generated following the coordinates from the reference fasta file. If the sample was sequenced using a capture kit, then the BED file that covers the regions defined by the capture should be set in every fcs-genome tool used in the pipeline where the interval option (-L) is available such as BQSR, HTC, mutect2, etc. It is recommended that BED file should be sorted by chromosome and position before execution:
+
+sort -k1,1V -k2,2n IntervalFile.bed > IntervalFile_sorted.bed
+
+
+
+
